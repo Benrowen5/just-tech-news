@@ -1,27 +1,17 @@
 {
   "name": "just-tech-news",
   "version": "1.0.0",
-  "description": "Module 13 ORM",
+  "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Benrowen5/just-tech-news.git"
   },
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Benrowen5/just-tech-news/issues"
-  },
-  "devDependencies": {
-    "express": "^4.17.1",
-    "mysql2": "^2.3.3-rc.0",
-    "sequelize": "^6.9.0"
-  },
   "dependencies": {
-    "dotenv": "^10.0.0"
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "mysql2": "^2.1.0",
+    "sequelize": "^5.21.5"
   }
 }
