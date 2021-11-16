@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const {Post, User, Vote} = require('../../models');
+const {Post, User, Vote, Comment} = require('../../models');
 const sequelize = require('../../config/connection');
 
 // GET all posts
@@ -9,9 +9,17 @@ router.get('/', (req, res) => {
         order: [['created_at', 'DESC']],
         include: [
             {
+                model: Comment,
+                attributes: ['id','comment_text','post_id','user_id','created_at'],
+                include: {
+                    model: User,
+                    attributes: ['username']
+                }
+            },
+            {
                 model: User,
                 attributes: ['username']
-            }
+            },
         ]
     })
     .then(dbPostData => res.json(dbPostData))
@@ -27,12 +35,20 @@ router.get('/:id', (req, res) => {
         where: {
             id: req.params.id
         },
-        attributes: ['id', 'post_url', 'title', 'created_at', [sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id'), 'vote_count']],
+        attributes: ['id', 'post_url', 'title', 'created_at', [sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'), 'vote_count']],
         include: [
+            {
+                model: Comment,
+                attributes: ['id','comment_text','post_id','user_id','created_at'],
+                include: {
+                    model: User,
+                    attributes: ['username']
+                }
+            },
             {
                 model: User,
                 attributes: ['username']
-            }
+            },
         ]
     })
     .then(dbPostData => {
