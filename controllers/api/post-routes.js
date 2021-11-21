@@ -7,7 +7,6 @@ const withAuth = require('../../utils/auth');
 router.get('/', (req, res) => {
     Post.findAll({
         attributes: ['id', 'post_url', 'title', 'created_at', [sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'), 'vote_count']],
-        order: [['created_at', 'DESC']],
         include: [
             {
                 model: Comment,
@@ -31,7 +30,7 @@ router.get('/', (req, res) => {
 });
 
 // GET a single post
-router.get('/post/:id', (req, res) => {
+router.get('/:id', (req, res) => {
     Post.findOne({
       where: {
         id: req.params.id
@@ -63,13 +62,14 @@ router.get('/post/:id', (req, res) => {
           res.status(404).json({ message: 'No post found with this id' });
           return;
         }
-  
-        // serialize the data
-        const post = dbPostData.get({ plain: true });
-  
-        // pass data to template
-        res.render('single-post', { post });
+        res.json(dbPostData);
       })
+      //   // serialize the data
+      //   const post = dbPostData.get({ plain: true });
+  
+      //   // pass data to template
+      //   res.render('single-post', { post });
+      // })
       .catch(err => {
         console.log(err);
         res.status(500).json(err);
@@ -94,8 +94,6 @@ router.get('/post/:id', (req, res) => {
 
 // PUT /api/posts/upvote
 router.put('/upvote', withAuth, (req, res) => {
-    // make sure the session exists first
-    if (req.session) {
       // pass session id along with all destructured properties on req.body
       Post.upvote({ ...req.body, user_id: req.session.user_id }, { Vote, Comment, User })
         .then(updatedVoteData => res.json(updatedVoteData))
@@ -104,7 +102,6 @@ router.put('/upvote', withAuth, (req, res) => {
           res.status(500).json(err);
           console.log('already voted on');
         });
-    }
   });
 
 // Update an existing post
