@@ -1,12 +1,12 @@
 const router = require('express').Router();
 const {Post, User, Vote, Comment} = require('../../models');
 const sequelize = require('../../config/connection');
+const withAuth = require('../../utils/auth');
 
 // GET all posts
 router.get('/', (req, res) => {
     Post.findAll({
         attributes: ['id', 'post_url', 'title', 'created_at', [sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'), 'vote_count']],
-        order: [['created_at', 'DESC']],
         include: [
             {
                 model: Comment,
@@ -30,7 +30,7 @@ router.get('/', (req, res) => {
 });
 
 // GET a single post
-router.get('/post/:id', (req, res) => {
+router.get('/:id', (req, res) => {
     Post.findOne({
       where: {
         id: req.params.id
@@ -62,23 +62,38 @@ router.get('/post/:id', (req, res) => {
           res.status(404).json({ message: 'No post found with this id' });
           return;
         }
-  
-        // serialize the data
-        const post = dbPostData.get({ plain: true });
-  
-        // pass data to template
-        res.render('single-post', { post });
+        res.json(dbPostData);
       })
+      //   // serialize the data
+      //   const post = dbPostData.get({ plain: true });
+  
+      //   // pass data to template
+      //   res.render('single-post', { post });
+      // })
       .catch(err => {
         console.log(err);
         res.status(500).json(err);
       });
   });
 
-// PUT /api/posts/upvote
-router.put('/upvote', (req, res) => {
-    // make sure the session exists first
+  router.post('/', withAuth, (req, res) => {
+    // expects {title: 'Taskmaster goes public!', post_url: 'https://taskmaster.com/press', user_id: 1}
     if (req.session) {
+      Post.create({
+        title: req.body.title,
+        post_url: req.body.post_url,
+        user_id: req.session.user_id
+      })
+        .then(dbPostData => res.json(dbPostData))
+        .catch(err => {
+          console.log(err);
+          res.status(500).json(err);
+        });
+    }
+  });
+
+// PUT /api/posts/upvote
+router.put('/upvote', withAuth, (req, res) => {
       // pass session id along with all destructured properties on req.body
       Post.upvote({ ...req.body, user_id: req.session.user_id }, { Vote, Comment, User })
         .then(updatedVoteData => res.json(updatedVoteData))
@@ -87,11 +102,10 @@ router.put('/upvote', (req, res) => {
           res.status(500).json(err);
           console.log('already voted on');
         });
-    }
   });
 
 // Update an existing post
-router.put('/:id', (req, res) => {
+router.put('/:id', withAuth, (req, res) => {
     Post.update(
         {
             title: req.body.title
@@ -115,7 +129,7 @@ router.put('/:id', (req, res) => {
     });
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', withAuth, (req, res) => {
     Post.destroy({
         where: {
             id: req.params.id
