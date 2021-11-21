@@ -8,8 +8,8 @@ Comment.init (
         id: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            autoIncrement: true,
-            primaryKey: true
+            primaryKey: true,
+            autoIncrement: true
         },
         comment_text: {
             type: DataTypes.STRING,
@@ -20,7 +20,6 @@ Comment.init (
         },
         user_id: {
             type: DataTypes.INTEGER,
-            allowNull: false,
             references: {
                 model: 'user',
                 key: 'id'
